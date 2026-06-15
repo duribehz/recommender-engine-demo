@@ -1,37 +1,23 @@
 import pandas as pd
-
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
+from pathlib import Path
 
 def load_data():
-    ratings_data = pd.read_csv("data/ratings.csv")
-    movies_data = pd.read_csv("data/movies.csv")
+    base_path = Path(__file__).parent.parent / "data"
 
-    movie_ratings_data = pd.merge(
-        ratings_data,
-        movies_data,
-        on="movieId"
-    )
+    ratings_data = pd.read_csv(base_path / "rating.csv")
+    movies_data = pd.read_csv(base_path / "movie.csv")
 
-    # TF-IDF usando plot
-    tfidf = TfidfVectorizer(
-        stop_words="english"
-    )
+    movie_ratings_data = pd.merge(ratings_data, movies_data, on="movieId")
 
-    tfidf_matrix = tfidf.fit_transform(
-        movies_data["plot"]
-    )
+    movies_data["genres_clean"] = movies_data["genres"].str.replace("|", " ", regex=False)
 
-    cosine_sim_matrix = cosine_similarity(
-        tfidf_matrix,
-        tfidf_matrix
-    )
+    tfidf = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = tfidf.fit_transform(movies_data["genres_clean"])
 
     return (
         movies_data,
         ratings_data,
         movie_ratings_data,
-        tfidf_matrix,
-        cosine_sim_matrix
+        tfidf_matrix
     )
